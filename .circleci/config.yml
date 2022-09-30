@@ -211,7 +211,7 @@ jobs:
       - checkout
       - install_ansible
       - add_ssh_keys:
-          fingerprints: ["84:eb:d7:cd:68:7d:e0:f8:de:e1:9e:eb:a4:20:02:2a"]
+          fingerprints: ["25:9a:6b:51:d7:6c:7c:4f:b3:d1:f9:a5:c4:62:14:48"]
       - attach_workspace:
           at: ~/
       - run:
@@ -219,7 +219,7 @@ jobs:
           command: |
             cd .circleci/ansible
             cat inventory.txt
-            ansible-playbook -i inventory.txt configure-server.yml --private-key udacity.pem
+            ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment     
 
   #run-migrations:
