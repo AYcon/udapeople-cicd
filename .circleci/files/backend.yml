@@ -40,5 +40,5 @@ Resources:
         - Key: Name
           Value: !Sub backend-${ID}
         - Key: prom
-          value: track
+          Value: track
 
