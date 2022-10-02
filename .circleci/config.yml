@@ -10,7 +10,7 @@ commands:
       - run:
           name: Install Node.js 13.8.0
           command: |
-            # workaround to demote to version 13.8.0 by installining latest version then demote
+            # workaround to demote to version 13.8.0 by installining latest version
             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
             sudo apt install -y nodejs
 
@@ -19,11 +19,11 @@ commands:
             sudo n 13.8.0
   notify_on_failure:
     steps:
-      - slack/notify: #slack notify
+      - slack/notify:
           event: fail
           channel: cicd-pipeline
           template: basic_fail_1
-  install_awscli: 
+  install_awscli:
     description: install aws cli
     steps:
       - run:
@@ -144,7 +144,7 @@ jobs:
               npm install
               npm test
       - notify_on_failure
-            
+ #scan frontend for vulnrabilities"force added for workaround"           
   scan-frontend:
     docker:
      - image: cimg/node:13.8.0
@@ -161,7 +161,7 @@ jobs:
               npm audit fix --audit-level=critical --force
               npm audit --audit-level=critical
       - notify_on_failure
-
+#scan backend for vulnrabilities"force added for workaround"
   scan-backend:
     docker:
      - image: cimg/node:13.8.0
@@ -178,7 +178,7 @@ jobs:
               npm audit fix --audit-level=critical --force
               npm audit --audit-level=critical
       - notify_on_failure
-
+#deploy front-end s3 and back end instance
   deploy-infrastructure:
     docker:
      - image: cimg/python:3.10
@@ -187,8 +187,7 @@ jobs:
       - install_awscli
       - run:
           name: Ensure back-end infrastructure exists
-          #deploying backend instance
-          command: |    
+          command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
@@ -196,8 +195,7 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
       - run:
           name: Ensure front-end infrastructure exist
-          #deplying s3 bucket
-          command: |  
+          command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
@@ -205,8 +203,7 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
       - run:
           name: Add back-end ip to ansible inventory
-          #retrieving back-end instance Ip to link to front end
-          command: |  
+          command: |
             BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -219,7 +216,7 @@ jobs:
             - project/.circleci/ansible/inventory.txt
 
       - destroy-environment
-      - notify_on_failure     
+      - notify_on_failure      
 
   configure-infrastructure:
     docker:
@@ -229,8 +226,7 @@ jobs:
       - install_ansible
       - install_awscli
       - add_ssh_keys:
-          fingerprints: ["25:9a:6b:51:d7:6c:7c:4f:b3:d1:f9:a5:c4:62:14:48"] 
-          #including finger print to retrieve enviromental values from circleci
+          fingerprints: ["25:9a:6b:51:d7:6c:7c:4f:b3:d1:f9:a5:c4:62:14:48"]
       - attach_workspace:
           at: ~/
       - run:
@@ -239,8 +235,8 @@ jobs:
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
-      - destroy-environment
-      - notify_on_failure     
+      - destroy-environment 
+      - notify_on_failure    
 
   run-migrations:
     docker:
@@ -259,9 +255,8 @@ jobs:
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
-          name: Send migration results to bucket
-          #uploading check state flag value to KVDB
-          command: |  
+          name: Send migration results to memstash
+          command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
@@ -270,7 +265,7 @@ jobs:
             fi
       - destroy-environment
       - revert-migrations
-      - notify_on_failure    
+      - notify_on_failure     
 
   deploy-frontend:
     docker:
@@ -303,8 +298,7 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
       - revert-migrations
-      - notify_on_failure
-      # Here's where you will add some code to rollback on failure      
+      - notify_on_failure     
                     
   deploy-backend:
     docker:
@@ -381,7 +375,7 @@ jobs:
             fi
       - destroy-environment
       - revert-migrations
-      - notify_on_failure
+      - notify_on_failure 
 
   cloudfront-update:
     docker:
@@ -418,8 +412,7 @@ jobs:
       - install_nodejs
       - run:
           name: Retrieve old ID and cleanup
-          #retrieve stack list/ compare to values from KVDB BUCKET
-          command: | 
+          command: |
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"  
@@ -432,8 +425,8 @@ jobs:
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
             fi
       - destroy-environment
-      - revert-migrations  
-      - notify_on_failure
+      - revert-migrations 
+      - notify_on_failure 
             
 #
   notify_on_success:
