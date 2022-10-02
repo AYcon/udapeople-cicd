@@ -364,7 +364,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            FRONTEND_SITE=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com
+            FRONTEND_SITE=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.amazonaws.com
             if curl -s $FRONTEND_SITE | grep "welcome"
             then
               exit 0
@@ -439,7 +439,8 @@ workflows:
               only: [master]
       - notify_on_success:
           requires:
-            - smoke-test
+            - deploy-frontend
+            - deploy-backend
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
