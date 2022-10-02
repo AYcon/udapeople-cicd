@@ -454,7 +454,7 @@ workflows:
               only: [master]
       - notify_on_success:
           requires:
-            - smoke-test
+            - cleanup
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
